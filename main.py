@@ -3,7 +3,6 @@ import pygame
 import sys
 import math
 import random
-# import os
 
 
 def create_board():
@@ -53,7 +52,18 @@ def play_rand_drop_sound(drop_sfx):
     drop_sfx = random.choice(drop_sfx)
     drop_sfx.play()
 
-    
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
+
+def track_mouse():
+    screen.fill((0,0,0))
+    mouseX = pygame.mouse.get_pos()[0]
+    if turn == 0:
+        pygame.draw.circle(screen, (255, 0, 0), (mouseX, 0), 45)
+    else:
+        pygame.draw.circle(screen, (255, 255, 0), (mouseX, 0), 45)
+    draw_board(board)
 
 def draw_board(board):
     for c in range(7):
@@ -79,34 +89,47 @@ board = create_board()
 game_over = False
 turn = 0
 
-drop_sfx = []
 
 pygame.init()
+drop_sfx = []
 for i in range(6):
     drop_sfx.append(pygame.mixer.Sound(f'dropSounds/drop-sound{i+1}.mp3'))
 spill_sfx = pygame.mixer.Sound('game-start-spill.mp3')
+game_over_sfx = pygame.mixer.Sound('game-over-winner.mp3')
 pygame.mixer.music.load('background-music.mp3')
 pygame.mixer.music.set_volume(0.25)  # Set volume (0.0 to 1.0)
 pygame.mixer.music.play(-1)  # Play the music indefinitely
 spill_sfx.play()
 
+text_font = pygame.font.SysFont("Arial", 30)
+
 pygame.display.set_caption('Connect 4')
-pygame.display.set_mode((700, 600))
 screen = pygame.display.set_mode((700, 600))
 draw_board(board)
 pygame.display.update()
 
-while not game_over:
+is_winner = False
+
+while True:
+    if not is_winner:
+        track_mouse()
+
     for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            is_winner = False
+            screen.fill((0,0,0))
+            board = create_board()
+            draw_board(board)
+            pygame.display.update()
+            spill_sfx.play()
         if event.type == pygame.QUIT:
             sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        if event.type == pygame.MOUSEBUTTONDOWN and is_winner == False:
             play_rand_drop_sound(drop_sfx)
             # ask for player 1 input
             if turn == 0:
                 mouseX = event.pos[0]
                 col = math.floor(mouseX / 100)
-                print(col)
                 if is_valid_location(board, col):
                     row = get_next_open_row(board, col)
                     drop_piece(board, row, col, 1)
@@ -117,7 +140,6 @@ while not game_over:
             else:
                 mouseX = event.pos[0]
                 col = math.floor(mouseX / 100)
-                print(col)
                 if is_valid_location(board, col):
                     row = get_next_open_row(board, col)
                     drop_piece(board, row, col, 2)
@@ -127,11 +149,20 @@ while not game_over:
   
             # Check for winning move
             if is_winning_move(board, 1):
-                game_over = True
-                print("Player 1 wins.")
+                is_winner = True
+                game_over_sfx.play()
+                draw_text("Player One Wins!", text_font, (255, 0, 0), 50, 50)
+                draw_text("Press R to Restart!", text_font, (0, 255, 0), 350, 50)
+                pygame.display.update()
+
             elif is_winning_move(board, 2):
-                game_over = True
-                print("Player 2 wins.")
+                is_winner = True
+                game_over_sfx.play()
+                draw_text("Player Two Wins!", text_font, (255, 255, 0), 50, 50)
+                draw_text("Press R to Restart!", text_font, (0, 255, 0), 350, 50)
+                pygame.display.update()
 
             turn += 1
             turn = turn % 2
+    
+    pygame.display.update()
