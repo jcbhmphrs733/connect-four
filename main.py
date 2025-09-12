@@ -12,7 +12,6 @@ def create_board():
 def drop_piece(board, row, col, piece):
     board[row][col] = piece
     
-
 def is_valid_location(board, col):
     return board[0][col] == 0
 
@@ -86,14 +85,14 @@ def draw_board(board):
                 pygame.draw.circle(screen, (255, 255, 0), (center_x, center_y), 45)
 
 board = create_board()
-game_over = False
 turn = 0
 
-
 pygame.init()
+
 drop_sfx = []
 for i in range(6):
     drop_sfx.append(pygame.mixer.Sound(f'dropSounds/drop-sound{i+1}.mp3'))
+
 spill_sfx = pygame.mixer.Sound('game-start-spill.mp3')
 game_over_sfx = pygame.mixer.Sound('game-over-winner.mp3')
 pygame.mixer.music.load('background-music.mp3')
@@ -115,7 +114,7 @@ while True:
         track_mouse()
 
     for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r and is_winner:
             is_winner = False
             screen.fill((0,0,0))
             board = create_board()
