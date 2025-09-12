@@ -1,6 +1,7 @@
 import numpy as np
 import pygame
 import sys
+import math
 # import os
 
 
@@ -10,6 +11,7 @@ def create_board():
 
 def drop_piece(board, row, col, piece):
     board[row][col] = piece
+    
 
 def is_valid_location(board, col):
     return board[0][col] == 0
@@ -20,7 +22,7 @@ def get_next_open_row(board, col):
             return r
     return None
 
-def winning_move(board, piece):
+def is_winning_move(board, piece):
     # Check horizontal locations for win
     for c in range(4):
         for r in range(6):
@@ -48,10 +50,26 @@ def winning_move(board, piece):
 
 
 def draw_board(board):
-    pass
+    for c in range(7):
+        for r in range(6):
+            # Draw row r at screen position r (top row is board[0], bottom row is board[5])
+            cell_x = c * 100
+            cell_y = r * 100
+            center_x = int(cell_x + 50)
+            center_y = int(cell_y + 50)
+            if board[r][c] == 0:
+                if r == 0:
+                    continue
+                pygame.draw.rect(screen, (0, 0, 255), (cell_x, cell_y, 100, 100))
+                pygame.draw.circle(screen, (0, 0, 0), (center_x, center_y), 45)
+            elif board[r][c] == 1:
+                pygame.draw.rect(screen, (0, 0, 255), (cell_x, cell_y, 100, 100))
+                pygame.draw.circle(screen, (255, 0, 0), (center_x, center_y), 45)
+            elif board[r][c] == 2:
+                pygame.draw.rect(screen, (0, 0, 255), (cell_x, cell_y, 100, 100))
+                pygame.draw.circle(screen, (255, 255, 0), (center_x, center_y), 45)
 
 board = create_board()
-print(board)
 game_over = False
 turn = 0
 
@@ -59,37 +77,48 @@ pygame.init()
 
 pygame.display.set_caption('Connect 4')
 pygame.display.set_mode((700, 600))
+screen = pygame.display.set_mode((700, 600))
+draw_board(board)
+pygame.display.update()
 
 while not game_over:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
+            #print mouse position
+            print(event.pos)
+            print("turn:", turn)
             # ask for player 1 input
             if turn == 0:
-                col = int(input("Player 1 Make your Selection (0-6): "))
+                mouseX = event.pos[0]
+                col = math.floor(mouseX / 100)
+                print(col)
                 if is_valid_location(board, col):
                     row = get_next_open_row(board, col)
                     drop_piece(board, row, col, 1)
-                    
+                    draw_board(board)
+                    pygame.display.update()
 
             # ask for player 2 input
             else:
-                col = int(input("Player 2 Make your Selection (0-6): "))
+                mouseX = event.pos[0]
+                col = math.floor(mouseX / 100)
+                print(col)
                 if is_valid_location(board, col):
                     row = get_next_open_row(board, col)
                     drop_piece(board, row, col, 2)
-            
+                    draw_board(board)
+                    pygame.display.update()
 
-    print(board)
+  
+            # Check for winning move
+            if is_winning_move(board, 1):
+                game_over = True
+                print("Player 1 wins.")
+            elif is_winning_move(board, 2):
+                game_over = True
+                print("Player 2 wins.")
 
-    # Check for winning move
-    if winning_move(board, 1):
-        game_over = True
-        print("Player 1 wins.")
-    elif winning_move(board, 2):
-        game_over = True
-        print("Player 2 wins.")
-
-    turn += 1
-    turn = turn % 2
+            turn += 1
+            turn = turn % 2
