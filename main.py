@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 import sys
 import math
+import random
 # import os
 
 
@@ -48,6 +49,11 @@ def is_winning_move(board, piece):
                 return True
     return False
 
+def play_rand_drop_sound(drop_sfx):
+    drop_sfx = random.choice(drop_sfx)
+    drop_sfx.play()
+
+    
 
 def draw_board(board):
     for c in range(7):
@@ -73,7 +79,16 @@ board = create_board()
 game_over = False
 turn = 0
 
+drop_sfx = []
+
 pygame.init()
+for i in range(6):
+    drop_sfx.append(pygame.mixer.Sound(f'dropSounds/drop-sound{i+1}.mp3'))
+spill_sfx = pygame.mixer.Sound('game-start-spill.mp3')
+pygame.mixer.music.load('background-music.mp3')
+pygame.mixer.music.set_volume(0.25)  # Set volume (0.0 to 1.0)
+pygame.mixer.music.play(-1)  # Play the music indefinitely
+spill_sfx.play()
 
 pygame.display.set_caption('Connect 4')
 pygame.display.set_mode((700, 600))
@@ -86,9 +101,7 @@ while not game_over:
         if event.type == pygame.QUIT:
             sys.exit()
         if event.type == pygame.MOUSEBUTTONDOWN:
-            #print mouse position
-            print(event.pos)
-            print("turn:", turn)
+            play_rand_drop_sound(drop_sfx)
             # ask for player 1 input
             if turn == 0:
                 mouseX = event.pos[0]
